@@ -1,0 +1,58 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<link href="~/lib/bootstrap/dist/css/bootstrap.css" rel="stylesheet" />
+
+<div class="col-xs-1 text-center">
+    <a href="~/Home/ChatToAll" style="color:#fff;margin-bottom:20px" class="btn btn-danger">چت با تمام افراد آنلان در سایت</a>
+    <br />
+
+    <a href="~/Home/NotificationToAll" style="color:#fff;margin-bottom:20px" class="btn btn-info align-self-center"> ارسال نوتیفیکیشن (ارسال پیام خارج از هاب)</a>
+
+    <br />
+    <a href="~/Home/ChatToGroup" style="color:#fff;margin-bottom:20px" class="btn btn-success">چت در یک گروه خاص</a>
+
+    <br />
+    <a href="~/Home/ChatP2P" style="color:#fff;margin-bottom:20px" class="btn btn-primary">چت دونفره</a>
+
+</div>
+
+
+<!---Toast-->
+<div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="3000">
+    <div class="toast-header">
+        <img src="~/favicon.ico" class="rounded mr-2" alt="...">
+        <strong class="mr-auto">Bootstrap</strong>
+        <small class="text-muted">11 mins ago</small>
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="toastbody">
+    </div>
+</div>
+
+
+
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+<script src="~/signalr/dist/browser/signalr.js"></script>
+
+<script type="text/javascript">
+
+    var connection = new signalR.HubConnectionBuilder().withUrl("/notifhub").build();
+
+    connection.start().then(function () {
+        console.log("START CHAT HUB....");
+
+    }).catch(function (err) {
+        return console.error(err.toString());
+
+    });
+
+    connection.on("ReceiveMessage", function (message) {
+        $('.toastbody').text(message);
+        $('.toast').toast('show');
+
+    });
+</script>

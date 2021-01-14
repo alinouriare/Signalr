@@ -1,0 +1,91 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Group Chat</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.css" rel="stylesheet" />
+</head>
+<body>
+
+    <div id="isTyping"></div>
+
+    Online : <div id="online"></div>
+
+    <div style="margin:40px">
+        <input class="input-group" type="text" id="group" style="margin-bottom:16px" />
+
+        <ul id="messagesList" style="margin-bottom:16px"></ul>
+
+        <textarea class="input-group" id="msg" style="margin-bottom:16px"></textarea>
+
+        <input type="button" class="btn btn-success" id="sendMsg" value="SEND">
+    </div>
+</body>
+</html>
+
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script src="~/signalr/dist/browser/signalr.min.js"></script>
+
+<script type="text/javascript">
+    var username = prompt('Please Enter Name :', 'ali');
+
+    var connection = new signalR.HubConnectionBuilder().withUrl("/groupchathub").build();
+
+    connection.start().then(function () {
+        console.log("START HUB....");
+
+    }).catch(function (err) {
+        return console.error(err.toString());
+
+    });
+
+    connection.on("ReceiveMessage", function (message) {
+
+        var li = document.createElement("li");
+        li.textContent = message;
+        document.getElementById("messagesList").appendChild(li);
+    });
+
+    $("#sendMsg").click(function () {
+
+        //join to group
+        connection.invoke("Join", $("#group").val());
+
+        connection.invoke("SendMessage", $("#group").val(), $("#msg").val());
+    });
+
+
+    //istyping
+    $("#msg").keypress(function () {
+
+        connection.invoke(
+            "IsTypingUser",
+            $("#group").val(),
+            username
+        );
+
+    });
+
+    connection.on("SayWhoIsTyping", function (name) {
+
+        $("#isTyping").html('<em>' + name + ' is typing...</em>');
+
+        setTimeout(function () {
+            $('#isTyping').html('');
+        }, 2000);
+    });
+
+    //online => conectId == count of online users
+    connection.on("GetOnlineUsers", function (conectId) {
+        debugger;
+        console.log(conectId);
+        $("#online").html('<em>' + conectId + ' person</em>');
+
+    });
+</script>

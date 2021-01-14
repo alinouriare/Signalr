@@ -1,0 +1,51 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Chat With All Online Users</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.css" rel="stylesheet" />
+</head>
+<body>
+    <div style="margin:40px">
+        <ul id="messagesList" style="margin-bottom:16px"></ul>
+
+        <textarea class="input-group" id="msg" style="margin-bottom:16px"></textarea>
+
+        <input type="button" class="btn btn-success" id="sendMsg" value="SEND">
+    </div>
+</body>
+</html>
+
+
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script src="~/signalr/dist/browser/signalr.js"></script>
+<script type="text/javascript">
+    var connection = new signalR.HubConnectionBuilder().withUrl("/chathub").build();
+
+    connection.start().then(function () {
+        console.log("START HUB....");
+
+    }).catch(function (err) {
+        return console.error(err.toString());
+
+    });
+
+    connection.on("ReceiveMessage", function (message) {
+
+        var msg = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        var encodedMsg = msg;
+        var li = document.createElement("li");
+        li.textContent = encodedMsg;
+        document.getElementById("messagesList").appendChild(li);
+    });
+
+    $("#sendMsg").click(function () {
+        connection.invoke("SendMessage", $("#msg").val());
+    });
+</script>

@@ -1,0 +1,85 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>P2P Chat</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.css" rel="stylesheet" />
+</head>
+<body>
+    <div style="margin:40px">
+        <select class="input-group" type="text" id="users" style="margin-bottom:16px">
+            <option>کاربر موردنظر را انتخاب کنید</option>
+        </select>
+
+        <ul id="messagesList" style="margin-bottom:16px"></ul>
+
+        <textarea class="input-group" id="msg" style="margin-bottom:16px"></textarea>
+
+        <input type="button" class="btn btn-success" id="sendMsg" value="SEND">
+    </div>
+</body>
+</html>
+
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script src="~/signalr/dist/browser/signalr.js"></script>
+
+<script type="text/javascript">
+
+    async function start() {
+        try {
+            await connection.start();
+            console.log("connected");
+        } catch (err) {
+            console.log(err);
+            setTimeout(() => start(), 5000);
+        }
+    };
+
+
+    var token = prompt('Please Enter Name :', 'ali');
+
+    var connection = new signalR.HubConnectionBuilder().withUrl("/p2phub?token=" + token).build();
+
+    start();
+    connection.onclose(async () => {
+        await start();
+    });
+
+    connection.on("RecieveMessage", function (name, msg) {
+        var li = document.createElement("li");
+        li.textContent = name + " says : " + msg;
+        document.getElementById("messagesList").appendChild(li);
+    });
+
+    connection.on("GetUsersList", function (usersList) {
+
+        //remove all option
+        var selectobject = document.getElementById("users");
+
+        for (var i = selectobject.options.length - 1; i > 0; i--) {
+            selectobject.options[i] = null;
+        }
+
+        for (var key in usersList) {
+            var option = document.createElement("option");
+            option.value = key;
+            option.textContent = usersList[key];
+            selectobject.appendChild(option);
+        }
+    });
+
+
+    $("#sendMsg").click(function () {
+        var e = document.getElementById("users");
+        var name1 = e.options[e.selectedIndex].text;
+        var message = $("#msg").val();
+        connection.invoke("SendMessage", name1, token, message);
+
+    });
+</script>
